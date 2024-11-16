@@ -1,6 +1,4 @@
-package com.xbongbong.paas.enums;
-
-import com.xbongbong.i18n.util.I18nMessageUtil;
+package com.xiaohai.llminterface.enums;
 
 import java.util.Objects;
 
@@ -69,11 +67,4 @@ public enum PlatFormEnum {
         return value;
     }
 
-    /**
-     * 获取平台标示中文描述
-     * @return 平台标示中文描述
-     */
-    public String getMemo() {
-        return I18nMessageUtil.getMessage(memo);
-    }
 }

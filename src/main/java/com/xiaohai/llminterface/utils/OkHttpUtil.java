@@ -1,15 +1,11 @@
-package com.xiaohai.newsassistant.utils;
+package com.xiaohai.llminterface.utils;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import lombok.Getter;
-import okhttp3.Call;
-import okhttp3.Callback;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
-import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -21,7 +17,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +27,7 @@ import java.util.concurrent.TimeUnit;
  * 废弃util中其他的httpUtil，统一到这个类来
  * @date 2022-8-4
  */
+@Slf4j
 public class OkHttpUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(OkHttpUtil.class);
@@ -187,9 +183,12 @@ public class OkHttpUtil {
      * @return 返回post请求response，请求失败则返回null
      */
     public static String post(String url, String strData, String contentType, Map<String, String> headers) {
+        log.info("requestBody: {}", strData);
         Request request = constructPostRequest(url, strData, contentType, headers);
         // 请求发送
-        return doSyncRequest(request);
+        String doSyncRequest = doSyncRequest(request);
+        log.info("response: {}", doSyncRequest);
+        return doSyncRequest;
     }
 
     /**

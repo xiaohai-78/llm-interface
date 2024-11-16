@@ -1,4 +1,4 @@
-package com.xbongbong.paas.pojo.vo;
+package com.xiaohai.llminterface.entity;
 /**
  * @author xiaoyt
  * @date 2022/8/28 20:35

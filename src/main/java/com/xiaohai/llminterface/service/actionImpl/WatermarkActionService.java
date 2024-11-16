@@ -1,6 +1,7 @@
-package com.xiaohai.llminterface.service;
+package com.xiaohai.llminterface.service.actionImpl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.xiaohai.llminterface.service.SystemActionAbstractService;
 import com.xiaohai.llminterface.utils.OkHttpUtil;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,7 +16,7 @@ import java.util.Map;
  * @Date: 2024/10/14
  */
 @Service
-public class WatermarkActionService extends SystemActionAbstractService{
+public class WatermarkActionService extends SystemActionAbstractService {
 
     /**
      * 生产水印的请求提示词
@@ -39,17 +40,19 @@ public class WatermarkActionService extends SystemActionAbstractService{
 			不需要多余解释，请你只返回Json信息。
 			""";
 
-    public WatermarkActionService(@Qualifier("ollamaChatModel") ChatModel chatModel) {
-        super(chatModel);
+    public WatermarkActionService(ChatModel ollamaChatModel) {
+        super(ollamaChatModel);
     }
+
 
     @Override
     public JSONObject execute(String message) {
-        // 获取当前水印状态
         JSONObject xbbState = getXbbWatermarkState();
         System.out.println(xbbState);
         String prompt = getParamPrompt(message, xbbState.toString());
+        // 使用llm生成接口请求参数
         JSONObject gptParams = generateParamsFromText(prompt);
+        // 使用请求xbb接口
         return updataWaterMark(gptParams);
     }
 

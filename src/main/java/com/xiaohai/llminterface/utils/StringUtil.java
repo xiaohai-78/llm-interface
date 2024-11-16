@@ -1,4 +1,4 @@
-package com.xiaohai.newsassistant.utils;
+package com.xiaohai.llminterface.utils;
 
 /**
  * @Description: String工具类

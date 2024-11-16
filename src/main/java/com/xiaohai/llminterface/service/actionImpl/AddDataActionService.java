@@ -1,5 +1,6 @@
 package com.xiaohai.llminterface.service.actionImpl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.xiaohai.llminterface.service.SystemActionAbstractService;
 import com.xiaohai.llminterface.utils.OkHttpUtil;
@@ -19,10 +20,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class NewDataActionService extends SystemActionAbstractService {
-    public NewDataActionService(@Qualifier("ollamaChatModel") ChatModel chatModel) {
-        super(chatModel);
-    }
+public class AddDataActionService extends SystemActionAbstractService {
 
     /**
      * 获取表单名称prompt
@@ -50,11 +48,17 @@ public class NewDataActionService extends SystemActionAbstractService {
             不需要多余解释，请你只返回Json信息。
             """;
 
+    public AddDataActionService(ChatModel ollamaChatModel) {
+        super(ollamaChatModel);
+    }
+
     @Override
     public JSONObject execute(String message) {
         String addCustomerParamPrompt = getParamPrompt(message);
-        JSONObject generateParams = generateParamsFromText(addCustomerParamPrompt);
-        return addCustomerRequest(generateParams);
+        JSONObject formListParams = generateParamsFromText(addCustomerParamPrompt);
+        JSONObject formListJsonObject = formListRequest(formListParams);
+
+        return formGet(formListJsonObject);
     }
 
     @Override
@@ -62,33 +66,68 @@ public class NewDataActionService extends SystemActionAbstractService {
         return String.format(GET_FORM_NAME_PROMPT_TEXT, strings[0]);
     }
 
-    public JSONObject addCustomerRequest(JSONObject response){
-        String name = response.getString("name");
-        String age = response.getString("age");
-        String sex = response.getString("sex");
+    public JSONObject formGet(JSONObject jsonObject){
+        log.info(jsonObject.toJSONString());
+        JSONObject formObject = jsonObject.getJSONObject("formObject");
+        if (formObject == null) {
+            return null;
+        }
+        Integer formId = formObject.getInteger("formId");
 
-        JSONObject addCustomer = new JSONObject();
+        JSONObject fromGet = new JSONObject();
         // 添加 corpid 和 formId 字段
-        addCustomer.put("corpid", "ding012d1a0065f8b378ffe93478753d9884");
-        addCustomer.put("formId", 8858717);
-        // 创建 dataList 字段并添加子元素
-        JSONObject dataList = new JSONObject();
-        dataList.put("text_1", name);
-        dataList.put("text_2", sex);
-        dataList.put("text_3", age);
-        // 将 dataList 放入最外层的 jsonObject
-        addCustomer.put("dataList", dataList);
-        String bodyStr = addCustomer.toString();
+        fromGet.put("corpid", "ding012d1a0065f8b378ffe93478753d9884");
+        fromGet.put("formId", formId);
+        String bodyStr = fromGet.toString();
 
-        String sign = calculateSHA256(bodyStr + "c3a09fbdc67731c1d8b40b380b7f203a");
+        String saasSign = calculateSHA256(bodyStr + "c3a09fbdc67731c1d8b40b380b7f203a");
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
-        headers.put("sign", sign);
-        log.info("计算sign：{}", sign);
+        headers.put("sign", saasSign);
+        String fromGetResponse = OkHttpUtil.post("https://proapi.xbongbong.com/pro/v2/api/form/get", bodyStr, OkHttpUtil.APPLICATION_JSON_UTF8_VALUE, headers);
+        JSONObject fromGetJson = JSONObject.parseObject(fromGetResponse);
 
-        String s = OkHttpUtil.post("https://proapi.xbongbong.com/pro/v2/api/paas/add", bodyStr, OkHttpUtil.APPLICATION_JSON_UTF8_VALUE, headers);
-        JSONObject jsonObject = JSONObject.parseObject(s);
-        return jsonObject.getJSONObject("result");
+        return fromGetJson.getJSONObject("result");
+    }
+
+    public JSONObject formListRequest(JSONObject gptResponse){
+        String formName = gptResponse.getString("formName");
+        JSONObject responseJson = new JSONObject();
+        responseJson.put("formName", formName);
+
+        JSONObject formList = new JSONObject();
+        // 添加 corpid 和 formId 字段
+        formList.put("corpid", "ding012d1a0065f8b378ffe93478753d9884");
+        formList.put("name", formName);
+        formList.put("saasMark", 1);
+        String saasRequest = formList.toString();
+
+        String saasSign = calculateSHA256(saasRequest + "c3a09fbdc67731c1d8b40b380b7f203a");
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/json");
+        headers.put("sign", saasSign);
+        log.info("计算sign：{}", saasSign);
+        String saasResponse = OkHttpUtil.post("https://proapi.xbongbong.com/pro/v2/api/form/list", saasRequest, OkHttpUtil.APPLICATION_JSON_UTF8_VALUE, headers);
+        JSONObject saasJson = JSONObject.parseObject(saasResponse);
+        JSONArray jsonArray = saasJson.getJSONObject("result").getJSONArray("formList");
+        if (jsonArray.size() > 0) {
+            responseJson.put("formObject", jsonArray.getJSONObject(0));
+            return responseJson;
+        }
+
+        formList.put("saasMark", 2);
+        String paasRequest = formList.toString();
+        String paasSign = calculateSHA256(paasRequest + "c3a09fbdc67731c1d8b40b380b7f203a");
+        headers.put("sign", paasSign);
+        String paasResponse = OkHttpUtil.post("https://proapi.xbongbong.com/pro/v2/api/form/list", paasRequest, OkHttpUtil.APPLICATION_JSON_UTF8_VALUE, headers);
+        JSONObject paasJson = JSONObject.parseObject(paasResponse);
+        jsonArray = paasJson.getJSONObject("result").getJSONArray("formList");
+        if (jsonArray.size() > 0) {
+            responseJson.put("formObject", jsonArray.getJSONObject(0));
+            return responseJson;
+        }
+
+        return responseJson;
     }
 
     // 计算 SHA-256 的方法

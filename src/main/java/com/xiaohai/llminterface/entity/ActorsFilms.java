@@ -1,4 +1,4 @@
-package com.xiaohai.llminterface.entity4;
+package com.xiaohai.llminterface.entity;
 
 import java.util.List;
 

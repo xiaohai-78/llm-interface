@@ -1,4 +1,4 @@
-package com.xiaohai.newsassistant.utils;
+package com.xiaohai.llminterface.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

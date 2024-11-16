@@ -1,4 +1,4 @@
-package com.xiaohai.llminterface.entity4;
+package com.xiaohai.llminterface.entity;
 
 import lombok.Getter;
 
@@ -11,4 +11,6 @@ import lombok.Getter;
 public class ChatOllamaDTO {
 
     String message;
+
+    String userId;
 }
