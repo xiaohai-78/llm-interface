@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: news-assistant
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        options:
+          model: qwen2.5
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: root
+    url: jdbc:mysql://localhost:3306/abc?characterEncoding=utf8&allowMultiQueries=true
+    username: root
+
+
+## 微信公众号配置，不需要的可以不用修改填写，获取地址 https://mp.weixin.qq.com/cgi-bin/safecenterstatus?action=view&t=setting/safe-index
+wx:
+  mp:
+    useRedis: false
+    redisConfig:
+      host: 127.0.0.1
+      port: 6379
+    configs:
+      ## https://mp.weixin.qq.com/advanced/advanced 设置与开发-基本配置 中获取
+      - appId: wxd35893d33ff520e2
+        secret: 42aaf0250cf1e7e9a29135fb60317d60
+        token: Token
+        aesKey: QiqUFt92R5V1OdMOdKKOCdeUTwHhqkanpKKIFvlbhOW
