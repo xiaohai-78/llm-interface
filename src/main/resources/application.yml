@@ -19,7 +19,8 @@ spring:
 #      username: sa
   datasource:
 #    url: jdbc:sqlite::resource:db/studio.db
-    url: jdbc:sqlite:D:\Project\studio.db
+#    url: jdbc:sqlite:D:\Project\studio.db
+    url: jdbc:sqlite:db/studio.db
     driver-class-name: org.sqlite.JDBC
 
 

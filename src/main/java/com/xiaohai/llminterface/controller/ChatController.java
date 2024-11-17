@@ -3,16 +3,22 @@ package com.xiaohai.llminterface.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.xiaohai.llminterface.entity.ChatOllamaDTO;
 import com.xiaohai.llminterface.function.WatermarkFunctionService;
+import com.xiaohai.llminterface.observation.AlibabaObservationHandler;
 import com.xiaohai.llminterface.service.SystemActionAbstractService;
 import com.xiaohai.llminterface.service.SystemActionServiceFactory;
 import com.xiaohai.llminterface.service.TestService;
 import com.xiaohai.llminterface.service.XbbActionService;
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -98,5 +104,30 @@ public class ChatController {
     public String analysisIntentionFunction(@RequestBody ChatOllamaDTO chatOllamaDTO) {
         String message = chatOllamaDTO.getMessage();
         return xbbActionService.xbbAction(message);
+    }
+
+    @PostMapping(value = "observation", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> observation(@RequestBody ChatOllamaDTO chatOllamaDTO) {
+         ObservationRegistry registry = ObservationRegistry.create();
+        registry.observationConfig().observationHandler(new AlibabaObservationHandler(Clock.SYSTEM));
+        OllamaChatModel ollamaChatModel = new OllamaChatModel(
+                    new OllamaApi(),
+                    new OllamaOptions().withModel("qwen2:latest"),
+                    null,
+                    null,
+                    registry
+            );
+        ChatClient chatClient = ChatClient.builder(ollamaChatModel).build();
+        System.out.println("controller当前线程名称: " + Thread.currentThread().getName());
+        String content = chatClient.prompt()
+                .function("watermarkFunctionService", "更新水印状态", new WatermarkFunctionService())
+                .system("你是一个alibabaAi助手，请礼貌的回答用户问题")
+                .user(chatOllamaDTO.getMessage())
+                .call().content();
+        System.out.println("controller当前线程名称: " + Thread.currentThread().getName());
+
+//        String call = ollamaChatModel.call(chatOllamaDTO.getMessage());
+        System.out.println(content);
+        return Map.of("message", content);
     }
 }
