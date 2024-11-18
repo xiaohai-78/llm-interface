@@ -47,13 +47,17 @@ public class ChatController {
     @Resource
     private XbbActionService xbbActionService;
 
+    public final ChatClient ollamaChatClient;
 
-    public ChatController(OllamaChatModel ollamaChatModel) {
-        this.ollamaChatModel = ollamaChatModel;
-    }
-
-    public ChatClient getOllamaChatClient(){
-        return ChatClient.create(this.ollamaChatModel);
+    public ChatController(OllamaApi ollamaApi, OllamaOptions ollamaOptions, ObservationRegistry observationRegistry) {
+        this.ollamaChatModel = new OllamaChatModel(
+                ollamaApi,
+                ollamaOptions,
+                null,
+                null,
+                observationRegistry
+        );
+        this.ollamaChatClient = ChatClient.create(ollamaChatModel, observationRegistry);
     }
 
     List<Message> messages = new ArrayList<>();
@@ -66,6 +70,18 @@ public class ChatController {
     @PostMapping(value = "generate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> generate(@RequestBody ChatOllamaDTO chatOllamaDTO) {
         String call = ollamaChatModel.call(chatOllamaDTO.getMessage());
+        System.out.println(call);
+        return Map.of("message", call);
+    }
+
+    /**
+     * 直接对话接口
+     * @param chatOllamaDTO
+     * @return
+     */
+    @PostMapping(value = "generateClient", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> generateClient(@RequestBody ChatOllamaDTO chatOllamaDTO) {
+        String call = ollamaChatClient.prompt().user(chatOllamaDTO.getMessage()).call().content();
         System.out.println(call);
         return Map.of("message", call);
     }
@@ -91,7 +107,7 @@ public class ChatController {
     public String analysisIntfunctionTestention(@RequestBody ChatOllamaDTO chatOllamaDTO) {
         String message = chatOllamaDTO.getMessage();
         messages.add(new UserMessage(message));
-        String aiMessage = getOllamaChatClient().prompt()
+        String aiMessage = ollamaChatClient.prompt()
                 .function("updataWatermark", "更新水印状态", new WatermarkFunctionService())
                 .messages(messages)
                 .call()
@@ -108,25 +124,11 @@ public class ChatController {
 
     @PostMapping(value = "observation", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> observation(@RequestBody ChatOllamaDTO chatOllamaDTO) {
-         ObservationRegistry registry = ObservationRegistry.create();
-        registry.observationConfig().observationHandler(new AlibabaObservationHandler(Clock.SYSTEM));
-        OllamaChatModel ollamaChatModel = new OllamaChatModel(
-                    new OllamaApi(),
-                    new OllamaOptions().withModel("qwen2:latest"),
-                    null,
-                    null,
-                    registry
-            );
-        ChatClient chatClient = ChatClient.builder(ollamaChatModel).build();
-        System.out.println("controller当前线程名称: " + Thread.currentThread().getName());
-        String content = chatClient.prompt()
+        String content = ollamaChatClient.prompt()
                 .function("watermarkFunctionService", "更新水印状态", new WatermarkFunctionService())
                 .system("你是一个alibabaAi助手，请礼貌的回答用户问题")
                 .user(chatOllamaDTO.getMessage())
                 .call().content();
-        System.out.println("controller当前线程名称: " + Thread.currentThread().getName());
-
-//        String call = ollamaChatModel.call(chatOllamaDTO.getMessage());
         System.out.println(content);
         return Map.of("message", content);
     }

@@ -1,6 +1,8 @@
 package com.xiaohai.llminterface.observation;
 
 import com.alibaba.fastjson.JSON;
+import com.xiaohai.llminterface.ali.entity.ModelObservationEntity;
+import com.xiaohai.llminterface.ali.mapper.ModelObservationMapper;
 import com.xiaohai.llminterface.entity.NewContext;
 import io.micrometer.common.KeyValue;
 import io.micrometer.core.instrument.Clock;
@@ -10,10 +12,16 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.client.observation.ChatClientObservationContext;
 import org.springframework.ai.chat.observation.ChatModelObservationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -28,9 +36,12 @@ public class AlibabaObservationHandler implements ObservationHandler<Observation
     private final Clock clock;
     private final Tracer tracer;
 
-    public AlibabaObservationHandler(Clock clock) {
+    private final ModelObservationMapper modelObservationMapper;
+
+    public AlibabaObservationHandler(Clock clock, ModelObservationMapper modelObservationMapper) {
         this.clock = clock;
         this.tracer = GlobalOpenTelemetry.getTracer("com.alibaba.cloud.ai");
+        this.modelObservationMapper = modelObservationMapper;
     }
 
     @Override
@@ -38,14 +49,13 @@ public class AlibabaObservationHandler implements ObservationHandler<Observation
         long startTime = clock.monotonicTime();
         context.put("startTime", startTime);
 
-        // 创建 OpenTelemetry Span
         SpanBuilder spanBuilder = tracer.spanBuilder(context.getName())
                 .setAttribute("component", "AlibabaChatClient")
                 .setAttribute("start_time", startTime);
         Span span = spanBuilder.startSpan();
 
         context.put("span", span);
-        LOGGER.info("Operation '{}' started. Start time: {}", context.getName(), startTime);
+        LOGGER.info("onStart: Operation '{}' started. Start time: {}", context.getName(), startTime);
     }
 
     @Override
@@ -54,16 +64,39 @@ public class AlibabaObservationHandler implements ObservationHandler<Observation
         long endTime = clock.monotonicTime();
         long duration = endTime - startTime;
 
-        // 获取并结束 Span
         Span span = context.getOrDefault("span", null);
         if (span != null) {
             span.setAttribute("duration_ns", duration);
             span.end();
         }
+        // 获取当前时间
+        ZonedDateTime now = ZonedDateTime.now();
 
-        extractFromContext(context);
+        // 格式化时间为指定格式
+        String formattedTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 
-        LOGGER.info("Operation '{}' completed. Duration: {} ns", context.getName(), duration);
+        // 判断 context 是否是 ChatClientObservationContext
+        if (context instanceof ChatClientObservationContext clientContext) {
+            ModelObservationEntity modelObservationEntity = new ModelObservationEntity();
+            modelObservationEntity.setName(clientContext.getName());
+            modelObservationEntity.setModel(clientContext.getRequest().getChatOptions().getModel());
+            modelObservationEntity.setTotalTokens(clientContext.getRequest().getChatOptions().getMaxTokens());
+            modelObservationEntity.setAddTime(formattedTime);
+            modelObservationMapper.insert(modelObservationEntity);
+            LOGGER.info("Processed ChatClientObservationContext: {}", clientContext);
+        } else if (context instanceof ChatModelObservationContext modelContext) {
+            ModelObservationEntity modelObservationEntity = new ModelObservationEntity();
+            modelObservationEntity.setName(modelContext.getName());
+            modelObservationEntity.setModel(modelContext.getRequest().getOptions().getModel());
+            modelObservationEntity.setTotalTokens(Math.toIntExact(modelContext.getResponse().getMetadata().getUsage().getTotalTokens()));
+            modelObservationEntity.setAddTime(formattedTime);
+            modelObservationMapper.insert(modelObservationEntity);
+            LOGGER.info("Processed ChatClientObservationContext: {}", modelContext);
+        } else {
+            LOGGER.warn("Unknown Observation.Context type: {}", context.getClass());
+        }
+
+        LOGGER.info("onStop: Operation '{}' completed. Duration: {} ns", context.getName(), duration);
     }
 
     @Override
@@ -74,7 +107,7 @@ public class AlibabaObservationHandler implements ObservationHandler<Observation
             span.setAttribute("error.message", context.getError().getMessage());
             span.recordException(context.getError());
         }
-        LOGGER.error("Operation '{}' failed with error: {}", context.getName(), context.getError().getMessage());
+        LOGGER.error("onError: Operation '{}' failed with error: {}", context.getName(), context.getError().getMessage());
     }
 
     @Override
