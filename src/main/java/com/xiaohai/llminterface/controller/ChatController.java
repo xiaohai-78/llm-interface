@@ -87,6 +87,18 @@ public class ChatController {
     }
 
     /**
+     * 直接对话接口
+     * @param chatOllamaDTO
+     * @return
+     */
+    @PostMapping(value = "generateChatModel", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> generateChatModel(@RequestBody ChatOllamaDTO chatOllamaDTO) {
+        String call = ollamaChatModel.call(chatOllamaDTO.getMessage());
+        System.out.println(call);
+        return Map.of("message", call);
+    }
+
+    /**
      * @return
      */
     @GetMapping(value = "conversion")

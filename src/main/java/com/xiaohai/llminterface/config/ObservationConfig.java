@@ -20,7 +20,7 @@ public class ObservationConfig {
     @Bean
     public ObservationRegistry observationRegistry(ModelObservationMapper modelObservationMapper) {
         ObservationRegistry observationRegistry = ObservationRegistry.create();
-        observationRegistry.observationConfig().observationHandler(new AlibabaObservationHandler(Clock.SYSTEM, modelObservationMapper));
+        observationRegistry.observationConfig().observationHandler(new AlibabaObservationHandler(modelObservationMapper));
         return observationRegistry;
     }
 

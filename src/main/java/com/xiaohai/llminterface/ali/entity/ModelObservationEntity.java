@@ -1,5 +1,6 @@
 package com.xiaohai.llminterface.ali.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -15,8 +16,8 @@ import lombok.EqualsAndHashCode;
 @TableName("tb_model_observation")
 public class ModelObservationEntity{
 
-    @TableId
-    private Integer id;
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    private String id;
 
     private String name;
 
@@ -30,4 +31,8 @@ public class ModelObservationEntity{
 
     private String error;
 
+    /*
+    Unit: Milliseconds
+     */
+    private Long duration;
 }
