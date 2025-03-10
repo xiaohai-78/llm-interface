@@ -1,30 +1,28 @@
 package com.xiaohai.llminterface.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.xiaohai.llminterface.entity.ChatOllamaDTO;
 import com.xiaohai.llminterface.function.WatermarkFunctionService;
-import com.xiaohai.llminterface.observation.AlibabaObservationHandler;
-import com.xiaohai.llminterface.service.SystemActionAbstractService;
-import com.xiaohai.llminterface.service.SystemActionServiceFactory;
 import com.xiaohai.llminterface.service.TestService;
 import com.xiaohai.llminterface.service.XbbActionService;
-import io.micrometer.core.instrument.Clock;
+import com.xiaohai.llminterface.service.impl.TestServiceImpl;
 import io.micrometer.observation.ObservationRegistry;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaApi;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,9 @@ public class ChatController {
 
     public final ChatClient ollamaChatClient;
 
-    public ChatController(OllamaApi ollamaApi, OllamaOptions ollamaOptions, ObservationRegistry observationRegistry) {
+    private final TestServiceImpl testServiceImpl;
+
+    public ChatController(OllamaApi ollamaApi, OllamaOptions ollamaOptions, ObservationRegistry observationRegistry, TestServiceImpl testServiceImpl) {
         this.ollamaChatModel = new OllamaChatModel(
                 ollamaApi,
                 ollamaOptions,
@@ -58,6 +58,7 @@ public class ChatController {
                 observationRegistry
         );
         this.ollamaChatClient = ChatClient.create(ollamaChatModel, observationRegistry);
+        this.testServiceImpl = testServiceImpl;
     }
 
     List<Message> messages = new ArrayList<>();
@@ -109,6 +110,11 @@ public class ChatController {
         return Map.of("message", actorsFilms.toString());
     }
 
+    @GetMapping(value = "fluxTest")
+    public void fluxTest() {
+        testService.fluxTest();
+    }
+
     @PostMapping(value = "analysisIntention", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public String analysisIntention(@RequestBody ChatOllamaDTO chatOllamaDTO) {
         String message = chatOllamaDTO.getMessage();
@@ -143,5 +149,37 @@ public class ChatController {
                 .call().content();
         System.out.println(content);
         return Map.of("message", content);
+    }
+
+    @PostMapping(value = "testServiceImpl", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, String> testServiceImpl(@RequestBody @Validated ChatOllamaDTO chatOllamaDTO) {
+        testServiceImpl.test2();
+        System.out.println(chatOllamaDTO);
+        return Map.of("message", "success");
+    }
+
+    @PostMapping(value = "testSse")
+    public Flux<String> testSse(@RequestBody ChatOllamaDTO chatOllamaDTO) {
+        Flux<String> content = ollamaChatClient.prompt()
+                .function("watermarkFunctionService", "更新水印状态", new WatermarkFunctionService())
+                .system("你是一个alibabaAi助手，请礼貌的回答用户问题")
+                .user(chatOllamaDTO.getMessage()).stream().content();
+        return content;
+    }
+
+    @GetMapping(value = "testSse")
+    public Flux<ChatResponse> testGetSse() {
+        return ollamaChatClient.prompt()
+                .function("watermarkFunctionService", "更新水印状态", new WatermarkFunctionService())
+                .system("你是一个alibabaAi助手，请礼貌的回答用户问题")
+                .user("你是谁？ 你能做什么？").stream().chatResponse();
+    }
+
+    @GetMapping(value = "testSseString", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> testGetSseString(String input) {
+        return ollamaChatClient.prompt()
+                .function("watermarkFunctionService", "更新水印状态", new WatermarkFunctionService())
+                .system("你是一个alibabaAi助手，请礼貌的回答用户问题")
+                .user(input).stream().content();
     }
 }

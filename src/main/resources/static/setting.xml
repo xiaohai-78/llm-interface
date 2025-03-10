@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!-- ======================================================================== -->
+<!--  settings.xml for maven users                                            -->
+<!--  Version: 3                                                              -->	
+<!--  Auhtor: jingshun shi                                                    -->	
+<!--  $Id: settings.xml  2012-09-25  jingshun.shijs $ -->	
+<!-- ======================================================================== -->
+
+<settings>
+	<!-- ======================================================================== -->
+	<!--  Accounts for SCM ONLY                                                   -->
+	<!-- ======================================================================== -->
+	<servers>
+		<server>
+			<id>snapshots</id>
+			<username>snapshotsAdmin</username>
+			<password>secret</password>
+		</server>
+		<server>
+			<id>releases</id>
+			<username>deployment</username>
+			<password>secret</password>
+		</server>
+	</servers>
+	<mirrors>
+            <mirror>
+                    <id>b2bmirror-all</id>
+                    <mirrorOf>*</mirrorOf>
+                    <name>b2b mirror</name>
+                    <url>http://repo.alibaba-inc.com/nexus/content/groups/public/</url>
+            </mirror>
+    	</mirrors> 
+
+	<!-- ======================================================================== -->
+	<!--  Profiles                                                                -->
+	<!-- ======================================================================== -->
+	<profiles>
+		<profile>
+			<!-- ======================================================================== -->
+			<!--  Managed Repositories for Alibaba Dev,include tabao repos and center repo-->
+			<!-- ======================================================================== -->
+			<id>alibaba</id>
+			<repositories>
+				<repository>
+					<id>central</id>
+					<name>Alibaba Repositories Group</name>
+					<url>http://repo.alibaba-inc.com/nexus/content/groups/public/</url>
+				</repository>
+			</repositories>
+			
+			<!-- ======================================================================== -->
+			<!--  Repositories for maven plugins          -->
+			<!-- ======================================================================== -->
+			<pluginRepositories>
+				<pluginRepository>
+                                        <id>central</id>
+                                        <name>Alibaba Plugin Repos Group</name>
+                                        <url>http://repo.alibaba-inc.com/nexus/content/groups/public/</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+
+	
+	</profiles>
+
+	<pluginGroups>
+		<pluginGroup>com.alibaba.org.apache.maven.plugins</pluginGroup>
+		<pluginGroup>com.alibaba.maven.plugins</pluginGroup>
+	</pluginGroups>	
+	<activeProfiles>
+                <activeProfile>alibaba</activeProfile>
+	</activeProfiles>
+</settings>

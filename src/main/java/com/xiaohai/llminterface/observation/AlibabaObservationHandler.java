@@ -64,17 +64,17 @@ public class AlibabaObservationHandler implements ObservationHandler<Observation
         ZonedDateTime now = ZonedDateTime.now();
         String formattedTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
 
-        if (context instanceof ChatModelObservationContext modelContext) {
-            ModelObservationEntity modelObservationEntity = new ModelObservationEntity();
-            modelObservationEntity.setName(modelContext.getName());
-            modelObservationEntity.setAddTime(formattedTime);
-            modelObservationEntity.setDuration(duration);
-            modelObservationEntity.setModel(modelContext.getLowCardinalityKeyValue("gen_ai.response.model").getValue());
-            modelObservationEntity.setTotalTokens(Math.toIntExact(modelContext.getResponse().getMetadata().getUsage().getTotalTokens()));
-            modelObservationMapper.insert(modelObservationEntity);
-        } else {
-            LOGGER.warn("Unknown Observation.Context type: {}", context.getClass());
-        }
+//        if (context instanceof ChatModelObservationContext modelContext) {
+//            ModelObservationEntity modelObservationEntity = new ModelObservationEntity();
+//            modelObservationEntity.setName(modelContext.getName());
+//            modelObservationEntity.setAddTime(formattedTime);
+//            modelObservationEntity.setDuration(duration);
+//            modelObservationEntity.setModel(modelContext.getLowCardinalityKeyValue("gen_ai.response.model").getValue());
+//            modelObservationEntity.setTotalTokens(Math.toIntExact(modelContext.getResponse().getMetadata().getUsage().getTotalTokens()));
+//            modelObservationMapper.insert(modelObservationEntity);
+//        } else {
+//            LOGGER.warn("Unknown Observation.Context type: {}", context.getClass());
+//        }
 
         LOGGER.info("onStop: Operation '{}' completed. Duration: {} ns", context.getName(), duration);
     }

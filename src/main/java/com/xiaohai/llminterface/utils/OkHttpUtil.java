@@ -18,6 +18,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +63,38 @@ public class OkHttpUtil {
 
     static {
         CLIENT = okHttpConfigClient();
+    }
+
+    public static void main(String[] args) {
+        // URL
+        String url = "https://www.grainger.com/experience/pub/api/publishing/categories?rootOnly=1";
+        // Cookies
+        String COOKIE = "abc";
+        // User Agent
+        String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
+        // Headers
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("user-agent", userAgent);
+        headers.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        headers.put("accept-language", "zh-CN,zh;q=0.9");
+        headers.put("cache-control", "max-age=0");
+        headers.put("priority", "u=0, i");
+        headers.put("sec-ch-ua", "\"Not A(Brand\";v=\"8\", \"Chromium\";v=\"132\", \"Google Chrome\";v=\"132\"");
+        headers.put("sec-ch-ua-mobile", "?0");
+        headers.put("sec-ch-ua-platform", "\"macOS\"");
+        headers.put("sec-fetch-dest", "document");
+        headers.put("sec-fetch-mode", "navigate");
+        headers.put("sec-fetch-site", "none");
+        headers.put("sec-fetch-user", "?1");
+        headers.put("upgrade-insecure-requests", "1");
+        headers.put("cookie", COOKIE);
+        headers.put("if-none-match", "W/\"1945-xJAkWpYsbEJ/JBYLPO0Gm9T2LLI\"");
+        headers.put("dnt", "1");
+
+        String s = get(url, null, headers);
+
+        // Print Request for Debugging
+        System.out.println(s);
     }
 
     private static OkHttpClient okHttpConfigClient() {

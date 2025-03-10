@@ -1,6 +1,5 @@
 package com.xiaohai.llminterface.service;
 
-import com.xiaohai.llminterface.entity.XbbActionPojo;
 import com.xiaohai.llminterface.enums.SystemActionEnum;
 import com.xiaohai.llminterface.function.IdentifyIntentService;
 import com.xiaohai.llminterface.function.NewCustomerFuncion;
@@ -10,19 +9,15 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
-import jakarta.annotation.Resource;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.xiaohai.llminterface.enums.SystemActionEnum.NATURAL_DIALOG;
 
 /**
  * @Description: 销帮帮动作
