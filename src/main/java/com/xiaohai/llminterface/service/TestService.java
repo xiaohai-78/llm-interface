@@ -5,9 +5,8 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.converter.BeanOutputConverter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +25,11 @@ public class TestService {
 
     public TestService(ChatModel ollamaChatModel) {
         this.ollamaChatModel = ollamaChatModel;
+    }
+
+    public String testAssert(String msg) {
+        Assert.notNull(msg, "msg cannot be null");
+        return msg;
     }
 
 

@@ -9,6 +9,7 @@ spring:
         enabled: true
     dashscope:
       api-key: ${AI_DASHSCOPE_API_KEY}
+
 #  h2:
 #    console:
 #      enabled: true

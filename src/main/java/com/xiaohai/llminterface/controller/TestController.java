@@ -1,8 +1,10 @@
 package com.xiaohai.llminterface.controller;
 
 import com.xiaohai.llminterface.service.AbcService;
+import com.xiaohai.llminterface.service.TestService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
 
 /**
  * @author xiaoyuntao
@@ -16,19 +18,40 @@ public class TestController {
 
     private static final String FILE_PATH = "static/robots.txt";
 
+    private final RestClient restClient;
+
+    private final TestService testService;
+
     @RequestMapping("/")
     public String test() {
         return "test";
     }
 
-    public TestController(AbcService abcService) {
+    public TestController(AbcService abcService, RestClient.Builder restClientBuilder, TestService testService) {
         this.abcService = abcService;
+        this.restClient = restClientBuilder.build();
+        this.testService = testService;
     }
 
     @RequestMapping("/test1")
     public String test1() {
         abcService.test();
         return "success";
+    }
+
+    @RequestMapping("/test2")
+    public String test2(String urlPath) {
+        String result = restClient.get()
+                .uri("https://{urlPath}.com", urlPath)
+                .retrieve()
+                .body(String.class);
+        System.out.println(result);
+        return result;
+    }
+
+    @RequestMapping("/testAssert")
+    public String testAssert(String msg) {
+        return testService.testAssert(msg);
     }
 
 //    @GetMapping("/setting.txt")
