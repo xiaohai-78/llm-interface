@@ -1,5 +1,6 @@
 package com.xiaohai.llminterface.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.xiaohai.llminterface.entity.ActorsFilms;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.Generation;
@@ -7,11 +8,21 @@ import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Description:
@@ -115,5 +126,103 @@ public class TestService {
             throw new RuntimeException(e);
         }
     }
+
+    private final static String apiUri = "/open/api/inner/v1/ai/selectByRecordId";
+
+    private final static String url = "https://adic.d.design/open/api/inner/v1/ai/selectByRecordId";
+    public static List<String> getImageUrl(String recordPublicId) {
+        List<String> imgUrlList = new ArrayList<>();
+
+        Map<String, String> headers = new HashMap<>();
+        Map<String, String> dataSelect = new HashMap<>();
+        WebClient webClient = WebClient.builder()
+                .baseUrl("https://adic.d.design")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+        try {
+            // 生成时间戳
+            long timestamp = System.currentTimeMillis();
+
+            // 生成签名（需要根据实际签名逻辑实现）
+            String signature = createSignature(String.valueOf(timestamp), apiUri);
+
+            // 设置请求头
+            headers.put("X-Auth-Signature", signature);
+            headers.put("X-Request-Timestamp", String.valueOf(timestamp));
+
+            // 设置请求体
+            dataSelect.put("publicId", recordPublicId);
+
+            // 发送 POST 请求
+            Mono<Map> responseMono = webClient.post()
+                    .uri(apiUri)
+                    .headers(httpHeaders -> httpHeaders.setAll(headers))
+                    .bodyValue(dataSelect)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .timeout(Duration.ofSeconds(5));// 设置超时时间
+
+            Map response = responseMono.block();
+
+            System.out.println(response);
+            // 处理响应
+            if (response != null && (int) response.get("code") == 200) {
+                Map<String, Object> data = (Map<String, Object>) response.get("data");
+                if ("SUCCEED".equals(data.get("status"))) {
+//                    List<Map<String, String>> worksVOList = (List<Map<String, String>>) data.get("worksVOList");
+//                    for (Map<String, String> work : worksVOList) {
+//                        imgUrlList.add(work.get("result"));
+//                    }
+                    System.out.println(data.toString());
+                    return imgUrlList;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("请求失败: " + e.getMessage());
+            // 可选：记录更详细的错误信息
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String createSignature(String timestamp, String uri) {
+        String method = "POST";
+        String secretKey = "1O9F8NEyK3iP4KmJig4r4SQPyqLGSQrsRU5VV4+OC/s=";
+        if (uri == null || uri.isEmpty()) {
+            uri = "/open/api/inner/v1/ai/generate";
+        }
+        String dataToSign = method + "&" + uri + "&" + timestamp;
+
+        try {
+            Mac sha256Hmac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            sha256Hmac.init(secretKeySpec);
+
+            return bytesToHex(sha256Hmac.doFinal(dataToSign.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate HMAC SHA256 signature", e);
+        }
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    public static void main(String[] args) {
+
+        Integer dsInterval = 0;
+        System.out.println("ds=" + DateTimeFormatter.ofPattern("yyyyMMdd")
+                .format(LocalDate.now().minusDays(Math.abs(Objects.nonNull(dsInterval) ? dsInterval : -1))));
+    }
+
+
 
 }

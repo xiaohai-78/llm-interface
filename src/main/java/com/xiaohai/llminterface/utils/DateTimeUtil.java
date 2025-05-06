@@ -1,9 +1,12 @@
 package com.xiaohai.llminterface.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+@UtilityClass
 public class DateTimeUtil {
 
     public static void main(String[] args) {

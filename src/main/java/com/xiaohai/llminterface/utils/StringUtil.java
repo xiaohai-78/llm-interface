@@ -6,6 +6,11 @@ package com.xiaohai.llminterface.utils;
  * @Date: 2024/9/4
  */
 public class StringUtil {
+
+    public static void main(String[] args) {
+        System.out.println(getScene("a", "b"));
+    }
+
     public static boolean isEmpty(String value) {
         return isEmpty(value, true);
     }
@@ -75,5 +80,9 @@ public class StringUtil {
             }
         }
         return false;
+    }
+
+    private static String getScene(String categories, String subCategories) {
+        return  String.join(" | ", categories, subCategories);
     }
 }

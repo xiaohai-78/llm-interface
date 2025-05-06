@@ -1,7 +1,10 @@
 package com.xiaohai.llminterface.utils;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Map;
 
+@UtilityClass
 public class CommentUtil {
     /**
      * 拼接形成url，带?（即以“?”符号开始）
