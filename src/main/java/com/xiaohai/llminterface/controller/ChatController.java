@@ -42,6 +42,7 @@ public class ChatController {
     // r3.1
     private final OllamaChatModel ollamaChatModel;
 
+    // r3.2
     @Resource
     private TestService testService;
 
