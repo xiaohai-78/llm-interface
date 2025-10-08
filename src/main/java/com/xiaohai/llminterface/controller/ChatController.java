@@ -78,6 +78,7 @@ public class ChatController {
         return Map.of("message", call);
     }
 
+
     /**
      * 直接对话接口
      * @param chatOllamaDTO
