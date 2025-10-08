@@ -50,6 +50,7 @@ public class ChatController {
     // f 2.1
     public final ChatClient ollamaChatClient;
 
+    // f 2.2
     private final TestServiceImpl testServiceImpl;
 
     public ChatController(OllamaApi ollamaApi, OllamaOptions ollamaOptions, ObservationRegistry observationRegistry, TestServiceImpl testServiceImpl) {
