@@ -47,6 +47,7 @@ public class ChatController {
     @Resource
     private XbbActionService xbbActionService;
 
+    // f 2.1
     public final ChatClient ollamaChatClient;
 
     private final TestServiceImpl testServiceImpl;
