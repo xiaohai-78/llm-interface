@@ -39,6 +39,7 @@ import java.util.Map;
 @RequestMapping("/chat")
 public class ChatController {
 
+
     private final OllamaChatModel ollamaChatModel;
 
     @Resource
