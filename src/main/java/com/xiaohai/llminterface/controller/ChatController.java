@@ -75,7 +75,7 @@ public class ChatController {
     @PostMapping(value = "generate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, String> generate(@RequestBody ChatOllamaDTO chatOllamaDTO) {
         String call = ollamaChatModel.call(chatOllamaDTO.getMessage());
-        System.out.println(call);
+        System.out.println(call );
         return Map.of("message", call);
     }
 
