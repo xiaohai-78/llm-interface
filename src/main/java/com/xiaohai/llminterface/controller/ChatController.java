@@ -51,6 +51,7 @@ public class ChatController {
     // f 2.1
     public final ChatClient ollamaChatClient;
 
+    // f 2.2
     private final TestServiceImpl testServiceImpl;
 
     // r 2.2
