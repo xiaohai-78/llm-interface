@@ -52,6 +52,7 @@ public class ChatController {
     // f3.1
     private final TestServiceImpl testServiceImpl;
 
+    // 3.2
     public ChatController(OllamaApi ollamaApi, OllamaOptions ollamaOptions, ObservationRegistry observationRegistry, TestServiceImpl testServiceImpl) {
         this.ollamaChatModel = new OllamaChatModel(
                 ollamaApi,
